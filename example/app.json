@@ -1,0 +1,38 @@
+{
+  "name": "PracticeNativeSdkExample",
+  "displayName": "PracticeNativeSdkExample",
+  "components": [
+    {
+      "appKey": "PracticeNativeSdkExample",
+      "displayName": "PracticeNativeSdkExample"
+    }
+  ],
+  "resources": {
+    "android": [
+      "dist/res",
+      "dist/main.android.jsbundle"
+    ],
+    "ios": [
+      "dist/assets",
+      "dist/main.ios.jsbundle"
+    ],
+    "macos": [
+      "dist/assets",
+      "dist/main.macos.jsbundle"
+    ],
+    "visionos": [
+      "dist/assets",
+      "dist/main.visionos.jsbundle"
+    ],
+    "windows": [
+      "dist/assets",
+      "dist/main.windows.bundle"
+    ]
+  },
+  "android": {
+    "package": "practicenativesdk.example"
+  },
+  "ios": {
+    "bundleIdentifier": "practicenativesdk.example"
+  }
+}
