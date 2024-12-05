@@ -1,10 +1,10 @@
+// import { MyComponent } from 'practice-native-sdk';
 import { StyleSheet, View } from 'react-native';
-import { PracticeNativeSdkView } from 'practice-native-sdk';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <PracticeNativeSdkView color="#32a852" style={styles.box} />
+      {/* <MyComponent title='Hey this npm package'/> */}
     </View>
   );
 }
