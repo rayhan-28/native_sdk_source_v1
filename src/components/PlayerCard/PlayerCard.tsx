@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text,  StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, Image, Modal } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text,  StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions, Image, Modal, Linking, Animated, Easing, TouchableWithoutFeedback } from "react-native";
 import axios from "axios";
 import ProgressBarSvg from "../../Common/ProgressBarSvg";
 import PlayrCardSvgIcons from "../../assets/Image/SVG/PlayerCard/PlayerCardSvg";
@@ -24,9 +24,10 @@ import { PlayerCharacterOverlay } from "./PlayerCharacterOverlay/PlayerCharacter
 // import { PlayerCharacterOverlay } from "./PlayerCharacterOverlay/PlayerCharacterOverlay";
 import ImageSlider from "./PlayerCharacterOverlay/SliderData";
 import { useNativeReactSdk } from "../../context/NativeReactSdkContext";
+import Error from "../../Common/Error";
 // import Error from "../../Common/Error";
 
-const {width:screenWidth}=Dimensions.get('screen')
+const {width:screenWidth,height:screenHeight}=Dimensions.get('screen')
 
 interface PlayerCardProps {
   width?: string | number;
@@ -67,30 +68,32 @@ export interface PlayerData {
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
   
-  Name = "Jahir",
+  Name = "",
   PhotoUrl = "",
-  email = "jahir.rayhan@bedatasolutions.com",
+  email = "",
   paddingOverly
 }) => {
   const { token } = useNativeReactSdk();
     // const token = "4733788f-783d-455f-a2b7-3b1815e53196"
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
-  // const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isClicked, setIsClicked] = useState<boolean>(false);
   const [shouldRefetch, setShouldRefetch] = useState<boolean>(false);
   const [userHabitFromPlayerCard, setUserHabitFromPlayerCard] = useState<boolean>(false);
   const [showPlayZone, setShowPlayZone] = useState<boolean>(false);
   const [erroShowSuccess, setErrorShowSuccess] = useState<boolean>(false);
-  // const {width:screenWidth,height:screenHeight}=Dimensions.get('screen')
-  // const [isLoading,setIsLoading]=useState<boolean>(false);
-  
+  const [isLoading,setIsLoading]=useState<boolean>(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollAnim = useRef(new Animated.Value(0)).current;
+  const textWidth = useRef(0); // To store the actual text width
+  const containerWidth = 100; // Fixed container width
   //  console.log("palyer height",screenHeight);
   const getOrdinalSuffix = (rank: number): string => {
     if (rank % 10 === 1 && rank % 100 !== 11) return "st";
     if (rank % 10 === 2 && rank % 100 !== 12) return "nd";
     if (rank % 10 === 3 && rank % 100 !== 13) return "rd";
     return "th";
-  };
+  }; 
   console.log(playerData);
 
   const fetchData = async () => {
@@ -103,7 +106,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         savePlayerNameAndAvatar(response.data?.data);
       }
     } catch {
-      // setError("You are not valid");
+      setError("You are not valid");
     }
   };
 
@@ -117,11 +120,11 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       fetchData();
       setShouldRefetch(false);
     }
-  }, [shouldRefetch]);
+  }, [shouldRefetch]); 
 
   const savePlayerNameAndAvatar = async (player: PlayerData) => {
     try {
-      // setIsLoading(true);
+      setIsLoading(true);
       const response = await axios.post(
         `https://dev.api.pitch.space/api/player-info?email=${email}&token=${token}`,
         {
@@ -135,22 +138,22 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         }
       );
       if(response.status===200){
-        // setIsLoading(false)
+        setIsLoading(false)
       }
       
     } catch (error) {
-      // setIsLoading(false)
+      setIsLoading(false)
       console.error("Failed to save player avatar");
     }
   };
 
-  // const handleRedirect = (redirectUrl?: string) => {
-  //   if (redirectUrl) {
-  //     Linking.openURL(redirectUrl);
-  //   } else {
-  //     console.error("No URL to redirect");
-  //   }
-  // };
+  const handleRedirect = (redirectUrl?: string) => {
+    if (redirectUrl) {
+      Linking.openURL(redirectUrl);
+    } else {
+      console.error("No URL to redirect");
+    }
+  };
 
   const handleClick = () =>{
    setIsClicked(true); 
@@ -161,24 +164,39 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   const handleOpenPlayZone = () => setShowPlayZone(true);
 
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setScroll(true);
-  //     setTimeout(() => setScroll(false), 3000);
-  //   }, 500);
-  //   return () => clearTimeout(timer);
-  // }, []);
-  console.log(userHabitFromPlayerCard);
+  const handlePress = () => {
+    if (isScrolling) return; // Block multiple presses
+    setIsScrolling(true);
+  
+    // Allow for a small tolerance (e.g., 5px)
+    const scrollDistance = textWidth.current - containerWidth;
+    console.log("text width ", textWidth.current);
+  
+    if (scrollDistance > 5) { 
+
+      Animated.timing(scrollAnim, {
+        toValue: -scrollDistance, 
+        duration: 3000, 
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(() => {
+        scrollAnim.setValue(0); 
+        setIsScrolling(false); 
+      });
+    } else {
+      setIsScrolling(false); 
+    }
+  };
   const rankSuf = playerData?.rank ?? 0;
- 
-  return false? <View/> :
+  console.log("loading check ",isLoading)
+  return error? <Error/> :
     
    isClicked?<PlayerCharacterOverlay ImageList={ImageSlider} email={email} Player={playerData!} onClose={()=>setIsClicked(false)} setShouldRefetch={setShouldRefetch}/>
    :
-   <View style={{paddingHorizontal:20}}>
-    <Modal 
+   <View style={{width:screenWidth*0.9}}>
+    <Modal  
      transparent={true}
-     visible={userHabitFromPlayerCard}
+     visible={userHabitFromPlayerCard}  
      animationType="fade"
      onRequestClose={()=>setUserHabitFromPlayerCard(false)} 
     > 
@@ -197,7 +215,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
      onCloseHabitQuestOverlay={()=>setUserHabitFromPlayerCard(false)} 
      paddingOverly={paddingOverly}
     />
-        </View>
+    </View>
 
     </Modal>
 
@@ -208,39 +226,28 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
      onRequestClose={()=>setShowPlayZone(false)}
     > 
 
-    <View style={styles.overlay}>
-    <PlayZone
-      email={email} 
-      erroShowSuccess={erroShowSuccess} 
-      setErrorShowSuccess={setErrorShowSuccess}
-      handleErrorClose={()=>setErrorShowSuccess(false)}
-      handleCloseSuccess={()=>setShowPlayZone(false)}
-      PlayerName={Name}
-      photoUrl={PhotoUrl}
-    />
-    </View>
+      <View style={styles.overlay}>
+        <PlayZone
+          email={email} 
+          erroShowSuccess={erroShowSuccess} 
+          setErrorShowSuccess={setErrorShowSuccess}
+          handleErrorClose={()=>setErrorShowSuccess(false)}
+          handleCloseSuccess={()=>setShowPlayZone(false)}
+          PlayerName={Name}
+          photoUrl={PhotoUrl}
+        />
+      </View>
 
     </Modal>
 
-    {/* showPlayZone ? (
-    <PlayZone
-      email={email} 
-      erroShowSuccess={erroShowSuccess} 
-      setErrorShowSuccess={setErrorShowSuccess}
-      handleErrorClose={()=>setErrorShowSuccess(false)}
-      handleCloseSuccess={()=>setShowPlayZone(false)}
-      PlayerName={Name}
-      photoUrl={PhotoUrl}
-    />
-   ) */}
     <View
        style={[styles.playerCard,{width: screenWidth>=500?375:'100%',
        } ]}
      >
     {/* top */}
-    { (false) ? (
+    {(isLoading) ? ( 
     <ActivityIndicator  size="large" color="tomato" />
-    ):
+    ): 
       <> 
       <View style={styles.playerCardTop}>
          {PhotoUrl && playerData?.featureUsingDetails?.characterType === 2 ? 
@@ -288,7 +295,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                <View style={styles.playerPointsStreakRank}>
                <View style={styles.playerPointGap}>
                  <Text style={styles.playerText}>Rank</Text>
-                <View style={{flexDirection:'row'}}>
+                <View style={{flexDirection:'row',columnGap:2}}>
                  <Text style={[styles.playerPoint]}>{playerData?.rank}</Text>
                  <Text style={styles.superscript}>{getOrdinalSuffix(rankSuf)}</Text>
                 </View> 
@@ -310,20 +317,32 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
          }
          
 
+          
        </View>
        {playerData?.habitQuest &&<>
        <View style={styles.playerCardMiddle}>
 
-       <View style={styles.playerVoucher}>
-        <ScrollView
-          horizontal={true} // Enables horizontal scrolling
-          showsHorizontalScrollIndicator={false} // Hides the scrollbar
-        >
-          <Text numberOfLines={1}  ellipsizeMode="tail" style={styles.voucherText}>
-          {playerData?.habitQuest?.rewardCondition}: {playerData?.habitQuest?.reward}
-          </Text>
-        </ScrollView>
-      </View>
+      <View style={styles.playerVoucher}>
+      <TouchableWithoutFeedback onPress={handlePress}>
+        <View style={styles.voucherContainer}>
+          <Animated.Text
+            style={[
+              styles.voucherText,
+              {
+                transform: [{ translateX: scrollAnim }],
+              },
+            ]}
+            onLayout={(e) => {
+              textWidth.current = e.nativeEvent.layout.width;
+            }}
+            numberOfLines={1} 
+            ellipsizeMode='tail'
+          >
+            {playerData?.habitQuest?.rewardCondition}: {playerData?.habitQuest?.reward}
+          </Animated.Text>
+        </View>
+      </TouchableWithoutFeedback>
+    </View>
          <View  style={styles.streakIcon}>
            {playerData?.habitQuest?.completedStreak===0?
            <View  style={{ marginRight: 5 ,marginTop: 3}}>
@@ -359,7 +378,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
          <View>
            <TouchableOpacity 
            style={styles.playerGoButton} 
-          //  onPress={()=>handleRedirect(playerData?.habitQuest?.redirectUrl)}
+           onPress={()=>handleRedirect(playerData?.habitQuest?.redirectUrl)}
            >
             <Text style={styles.playerGoButtonText}  >Go</Text>
           </TouchableOpacity>
@@ -385,6 +404,10 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    position:'absolute',
+    bottom:0,
+    height:screenHeight,
+    zIndex: 1000,
     justifyContent: "flex-end",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -561,30 +584,26 @@ const styles = StyleSheet.create({
       },
     
       playerVoucher: {
-        maxWidth: 200,
-        height:20,
-        overflow: 'hidden',
-        position: 'relative',
-        flexDirection:'row',
+        justifyContent: 'center',
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        padding: 0,
-        paddingHorizontal: 10,
-        backgroundColor: '#F9F9F9',
-        borderRadius: 10,
+        overflow: 'hidden',
         
       },
       voucherContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        
+        maxWidth: 200, 
+        overflow: 'hidden', // Ensures text overflows horizontally and gets hidden if not scrolling
+        backgroundColor: '#f0f0f0',
+        paddingHorizontal: 10,
+        paddingVertical:1,
+        borderRadius: 10,
+            
       },
       voucherText: {
         color: '#06182CCC',
         fontWeight:'500',
         lineHeight: 15.29,
-         fontSize: 12,
+        fontSize: 12,
+        width:500,
       },
 
       
@@ -594,4 +613,4 @@ const styles = StyleSheet.create({
       
   });
 
-export default PlayerCard;
+export default PlayerCard;    

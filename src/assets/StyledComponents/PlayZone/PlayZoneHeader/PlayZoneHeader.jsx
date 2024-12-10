@@ -126,7 +126,7 @@ const PlayZoneHeaderStyles = StyleSheet.create({
   },
   superscript: {
     fontSize: 15,
-    marginLeft:-2,
+    top:1.5,
     color:'#FFFFFF'
     
   },

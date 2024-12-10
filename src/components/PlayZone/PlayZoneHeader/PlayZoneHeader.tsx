@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PlayZoneHeaderSvgIcon from "../../../assets/Image/SVG/PlayZoneHeader/PlayZoneHeader";
-import { TouchableOpacity, View, Image, Text, ScrollView, ImageBackground, ActivityIndicator, Dimensions} from "react-native";
+import { TouchableOpacity, View, Image, Text, ScrollView, ImageBackground} from "react-native";
 import PlayZoneSvgIcon from "../../../assets/Image/SVG/PlayZone/PlayZone";
 import PlayZoneHeaderStyles from "../../../assets/StyledComponents/PlayZone/PlayZoneHeader/PlayZoneHeader";
 import { useNativeReactSdk } from "../../../context/NativeReactSdkContext";
-const {width:screenWidth,height:screeHeight}=Dimensions.get('screen')
+// const {width:screenWidth,height:screeHeight}=Dimensions.get('screen')
 
 // Define types for props
 interface PlayZoneHeaderProps {
   width?: string;
   maxWidth?: string;
   email: string;
-  photoUrl: string;
+  PhotoUrl: string;
   handleCloseSuccess: () => void;
   // checkForCharacter: (characterType: number, avatarPlayer: string) => void;
   PlayerName: string;
-  // setIsloadingHeader: (b: boolean) => void
-  // isLoading: boolean
+  setIsloadingHeader: (b: boolean) => void
+  isLoading: boolean
 }
 
 const Levels = [
@@ -55,15 +55,15 @@ const PlayZoneHeader: React.FC<PlayZoneHeaderProps> = ({
   // width = "100%",
   // maxWidth = 375,
   email,
-  // photoUrl="",
+   PhotoUrl,
   // checkForCharacter,
   PlayerName,
   handleCloseSuccess,
-  // setIsloadingHeader,
-  // isLoading
+  setIsloadingHeader,
+  isLoading
 }) => {
   // const [selectedEarning, setSelectedEarning] = useState<string>("artefact");
-  const [isloadingImage, setIsloadingImage]=useState<boolean>(true)
+  // const [isloadingImage, setIsloadingImage]=useState<boolean>(true)
 
   const getOrdinalSuffix = (rank: number): string => {
     if (rank % 10 === 1 && rank % 100 !== 11) {
@@ -76,27 +76,19 @@ const PlayZoneHeader: React.FC<PlayZoneHeaderProps> = ({
       return "th";
     }
   };
-  // console.log(isLoading);
-  console.log(isloadingImage);
-  // const typeOfReward = {
-  //   artefact: ["Referrals", "Survey", "Content"],
-  //   reward: [],
-  // };
-
-  // const handleSelectEarning = (earningType: string): void => {
-  //   setSelectedEarning(earningType);
-  // };
+  
 
   // api call
   const { token } = useNativeReactSdk(); 
 
   const [data, setData] = useState<any | null>(null); // Set state to store the API data
   // const [error, setError] = useState<string | null>(null);
-  // const token = "4733788f-783d-455f-a2b7-3b1815e53196"
   useEffect(() => {
     // Make an API call with the stored email and token
     const fetchData = async () => {
+     
       try {
+         setIsloadingHeader(true)
         const response = await axios.get(
           "https://dev.api.pitch.space/api/player-level",
           {
@@ -108,12 +100,11 @@ const PlayZoneHeader: React.FC<PlayZoneHeaderProps> = ({
         );
         console.log(email);
         if (response.status === 200) {
-          // setIsloadingHeader(false);
+          setIsloadingHeader(false);
           setData(response.data);
-          console.log("hlw");
         }
       } catch (err) {
-        // setIsloadingHeader(false);
+        setIsloadingHeader(false);
         // setError("You are not valid");
       }
     };
@@ -170,13 +161,13 @@ const PlayZoneHeader: React.FC<PlayZoneHeaderProps> = ({
   <>
     {/* top part */}
 
-    { false && ( <ActivityIndicator 
+    {/* { isloadingImage && ( <ActivityIndicator 
         style = {{ position: 'absolute', top: screeHeight*0.3, left:screenWidth*0.46 }} 
         size="large" color="green" 
       />
-    )}
+    )} */}
    
-    {true && <ImageBackground
+    {!isLoading && <ImageBackground
       source={data?.data?.featureUsingDetails?.characterType==1? { uri: backgroundImageUrl ?? undefined } : undefined}
       style={[PlayZoneHeaderStyles.firstContainer, {
         height:data?.data?.featureUsingDetails?.characterType===1?590:'auto',
@@ -184,7 +175,7 @@ const PlayZoneHeader: React.FC<PlayZoneHeaderProps> = ({
         // borderRadius:20,
       }]}
       // onLoadStart={() => setIsloadingImage(true)}
-      onLoadEnd={() => setIsloadingImage(false)}
+      // onLoadEnd={() => setIsloadingImage(false)}
     >
     <TouchableOpacity onPress={handleCloseModal}>
     <View style={PlayZoneHeaderStyles.hideIcon}>
@@ -195,7 +186,7 @@ const PlayZoneHeader: React.FC<PlayZoneHeaderProps> = ({
         <View style={PlayZoneHeaderStyles.imageTitle}>
           {characterType===2  ? (
           <Image
-            source={{ uri: 'https://cdn.pixabay.com/photo/2024/05/26/10/15/bird-8788491_1280.jpg' }}
+            source={{ uri: PhotoUrl }}
             style={PlayZoneHeaderStyles.topCharacterImag}
           />
         ) : null}

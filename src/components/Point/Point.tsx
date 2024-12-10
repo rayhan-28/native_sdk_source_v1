@@ -40,24 +40,21 @@ const Point: React.FC<PointProps> = ({ actionName = '' }) => {
   }, [token, actionName, GetPoint]); // Re-run effect when token, actionName, or GetPoint changes
 
   return (
-    <View style={styles.pointsContainer}>
+    point?<View style={styles.pointsContainer}>
       <ReferralSvgIcon.star_small />
-
-      <Text style={styles.text}>{point || 0}</Text>
-    </View>
+      
+      <Text style={styles.text}>{point}</Text>
+    </View>:null
   );
 };
 
 const styles = StyleSheet.create({
   pointsContainer: {
-    backgroundColor: '#e0d1fc',
+    backgroundColor: '#E0D1FC',
     color: '#333',
-    height: 30,
-    width: 70,
-    borderRadius: 20,
-    fontWeight: '500',
-    fontSize: 18,
-    display: 'flex',
+    height: 21,
+    width: 50,
+    borderRadius: 10,
     columnGap: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -65,9 +62,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   text: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#06182CCC',
+    fontWeight: '400',
   },
 });
 

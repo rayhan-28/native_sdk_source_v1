@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
+  ActivityIndicator,
   // ActivityIndicator,
   Dimensions,
   Modal,
@@ -23,7 +24,7 @@ import SurveyQuest from "./SurveyQuest/SurveyQuest";
 import NdugesServeyQuestOverlay from "../../Common/NdugesServeyQuestOverlay";
 import Leaderboard from "./LeaderBoard/LeaderBoard";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth, height: screenHeight } = Dimensions.get("screen");
 // import { useNativeReactSdk } from "../../context/NativeReactSdkContext";
 // import SurveyQuestion from "./SurveyQuest/SurveyQuestion/SurveyQuestion";
 // import SurveyQuest from "./SurveyQuest/SurveyQuest";
@@ -88,7 +89,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({
   // setErrorShowSuccess,
   PlayerName,
 }) => {
-  // const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
   // const [isOpen, setIsOpen] = useState<boolean>(true);
   const [userHabitQuest, setUserHabitQuest] = useState<Quest[]>([]);
@@ -126,12 +126,13 @@ const PlayZone: React.FC<PlayZoneProps> = ({
   // const [reward,setReward] = useState<string|null>(null);
   const [completedStreak,setCompletedStreak]=useState<number>(0);
   const [playTimesInCurrentStreak,setPlayTimesInCurrentStreak]=useState<number>(0);
-  // const [isloadingHeader,setIsloadingHeader]=useState<boolean>(true);
-  // const [isloadingQuest,setIsloadingQuest]=useState<boolean>(true);
-  // const [isloadingLeaderboard,setIsloadingLeaderboard]=useState<boolean>(true);
+  const [isloadingHeader,setIsloadingHeader]=useState<boolean>(true);
+  const [isloadingQuest,setIsloadingQuest]=useState<boolean>(true);
+  const [isloadingLeaderboard,setIsloadingLeaderboard]=useState<boolean>(true);
   // const token = "4733788f-783d-455f-a2b7-3b1815e53196"
   useEffect(() => {
     const fetchData = async () => {
+      setIsloadingQuest(true);
       try {
         const response = await axios.get(
           "https://dev.api.pitch.space/api/quest-for-arcade",
@@ -141,7 +142,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({
         );
 
         if (response.status === 200) {
-          // setIsloadingQuest(false);
+          setIsloadingQuest(false);
           const quests: Quest[] = response.data.data; // Assuming the data is stored in `data`
 
           // Filter quests based on questCategory
@@ -161,7 +162,7 @@ const PlayZone: React.FC<PlayZoneProps> = ({
           setReferralQuest(referralQuests);
         }
       } catch (err: any) {
-        // setIsloadingQuest(false);
+        setIsloadingQuest(false);
         // setError(err);
       }
     };
@@ -223,16 +224,17 @@ const PlayZone: React.FC<PlayZoneProps> = ({
   const OnCloseReferralOverlay = () => {
     setReferralsNudgesOverlay(false);
   };
+  console.log(isServeyClicked)
+  console.log(surveyName)
   
-  console.log(surveyName);
-  console.log(isServeyClicked);
+  const LoaderCheck=isloadingLeaderboard || isloadingHeader || isloadingQuest;
   const isCLIQ= token === "4733788f-783d-455f-a2b7-3b1815e53196";
-  const CLIQtopBarHeight=screenHeight*0.1;
+  const CLIQtopBarHeight=screenHeight*0.15;
   const height = isCLIQ ? screenHeight - CLIQtopBarHeight : screenHeight;
-
+  
   return (
     
-    <View style={{height,width:screenWidth}}>
+    <View style={{height,width:screenWidth,backgroundColor:LoaderCheck?'#FFFFFF':'',borderTopLeftRadius:20,borderTopRightRadius:20}}>
 
       {/* {isServeyClicked && (
           <SurveyQuestion
@@ -249,16 +251,6 @@ const PlayZone: React.FC<PlayZoneProps> = ({
         )
       } */}
 
-      {/* { userHabitNuggesOverlay &&
-        <NdugesUserHabitQuestOverlay
-        email={email}
-        questId={questId!}
-        overlayContent={{rewardCondition,reward:reward!,completedStreak,playTimesInCurrentStreak}}
-        userHabitRewardAway={userHabitRewardAway} 
-        userHabitStreakAway={userHabitStreakAway}
-        onCloseHabitQuestOverlay={()=>setUserHabitNuggesOverlay(false)}
-        />
-      } */}
 
       <Modal 
       transparent={true}
@@ -300,29 +292,29 @@ const PlayZone: React.FC<PlayZoneProps> = ({
         />
       }
 
-      {/* { (isloadingLeaderboard || isloadingHeader || isloadingQuest) && (
+      { (isloadingLeaderboard || isloadingHeader || isloadingQuest) && (
           <ActivityIndicator
-            style={{position: 'absolute',top:screeHeight*0.5,left:screenWidth*0.46}}
+            style={{position: 'absolute',top:screenHeight*0.4,left:screenWidth*0.46}}
             size="large" color="tomato" 
           />
-      )} */}
+      )}
       
       <ScrollView style={[PlayZoneStyles.scrollView,{height:screenHeight,width:screenWidth>=500?375:screenWidth}]} showsVerticalScrollIndicator={false}>
       {/* header section   */}
       <View >
          <PlayZoneHeader 
           //  checkForCharacter={checkForCharacter}
-           photoUrl={photoUrl}
+           PhotoUrl={photoUrl}
            email={email}
            PlayerName={PlayerName}
            handleCloseSuccess={handleCloseSuccess}
-          //  isLoading={isloadingHeader || isloadingQuest || isloadingLeaderboard}
-          //  setIsloadingHeader={setIsloadingHeader}
+           isLoading={isloadingHeader || isloadingQuest || isloadingLeaderboard}
+           setIsloadingHeader={setIsloadingHeader}
          />
       </View>
 
 
-       {!false && <View style={{backgroundColor:'#FFFFFF'}}>
+       {!isloadingQuest && <View style={{backgroundColor:'#FFFFFF'}}>
         <View style={PlayZoneStyles.playZoneQuestSee}>
           <View style={{flexDirection:'row'}}>
             <Text style={{ fontWeight: "500", fontSize: 20 }}>Quest{" "}</Text>
@@ -401,8 +393,8 @@ const PlayZone: React.FC<PlayZoneProps> = ({
       {/* leaderboard section */}
         <Leaderboard 
           email={email} 
-          // setIsloadingLeaderboard={setIsloadingLeaderboard} 
-          // isLoading={isloadingHeader || isloadingQuest || isloadingLeaderboard}
+          setIsloadingLeaderboard={setIsloadingLeaderboard} 
+          isLoading={isloadingHeader || isloadingQuest || isloadingLeaderboard}
         /> 
        
       

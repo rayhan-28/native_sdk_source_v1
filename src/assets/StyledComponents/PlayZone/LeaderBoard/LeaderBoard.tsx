@@ -53,6 +53,8 @@ export const LeaderBoardStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     width: '100%',
+    justifyContent:'center',
+    alignItems:'center',
     paddingVertical: 12,
     paddingRight: 12,
     borderBottomWidth: 1,
@@ -69,6 +71,7 @@ export const LeaderBoardStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '55%',
+    overflow: 'hidden'
   },
   avatar: {
     width: 30,
@@ -78,9 +81,11 @@ export const LeaderBoardStyles = StyleSheet.create({
     marginLeft:12,
   },
   playerName: {
+    flex: 1,
     fontSize: 16,
     fontWeight: '500',
     color: '#06182C',
+   
   },
   points: {
     width: '25%',
